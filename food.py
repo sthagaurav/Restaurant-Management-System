@@ -82,25 +82,134 @@ class RestaurantSystem:
         self.ingredient_requests = []
         self.customer_carts = {}  # Dictionary to store customer carts
 
+from datetime import datetime
+from enum import Enum
+from typing import List, Dict
+import os
+
+class UserRole(Enum):
+    ADMIN = "Admin"
+    MANAGER = "Manager"
+    CHEF = "Chef"
+    CUSTOMER = "Customer"
+
+class User:
+    def __init__(self, username: str, password: str, role: UserRole):
+        self.username = username
+        self.password = password
+        self.role = role
+
+class RestaurantSystem:
+    def __init__(self):
+        self.initialize_admin()
+        self.menu_items = []
+        self.orders = []
+        self.feedbacks = []
+        self.ingredient_requests = []
+
+    def initialize_admin(self):
+        # Create admin account if it doesn't exist
+        if not os.path.exists("users.txt"):
+            with open("users.txt", "w") as file:
+                # Format: username:password:role
+                file.write("admin:admin123:Admin\n")
+
+    def register_user(self):
+        print("\n=== User Registration ===")
+        username = input("Enter username: ")
+        password = input("Enter password: ")
+        
+        # Check if username already exists
+        if os.path.exists("users.txt"):
+            with open("users.txt", "r") as file:
+                for line in file:
+                    if line.split(":")[0] == username:
+                        print("Username already exists!")
+                        return
+
+        print("\nSelect Role:")
+        print("1. Customer")
+        print("2. Chef")
+        print("3. Manager")
+        role_choice = input("Choose role (1-3): ")
+
+        if role_choice == "1":
+            role = UserRole.CUSTOMER.value
+        elif role_choice == "2":
+            role = UserRole.CHEF.value
+        elif role_choice == "3":
+            role = UserRole.MANAGER.value
+        else:
+            print("Invalid role choice!")
+            return
+
+        with open("users.txt", "a") as file:
+            file.write(f"{username}:{password}:{role}\n")
+        print("Registration successful!")
+
     def login(self) -> User:
         attempts = 0
         while attempts < 3:
             print("\n=== Login ===")
-            username = input("Username: ")
-            password = input("Password: ")
+            username = input("Enter username: ")
+            password = input("Enter password: ")
+
+            try:
+                with open("users.txt", "r") as file:
+                    for line in file:
+                        stored_username, stored_password, role = line.strip().split(":")
+                        if username == stored_username and password == stored_password:
+                            print(f"\nWelcome, {username}!")
+                            return User(username, password, UserRole(role))
+                
+                attempts += 1
+                remaining = 3 - attempts
+                print(f"Invalid credentials! {remaining} attempts remaining.")
             
-            user = next((u for u in self.users if u.username == username and u.password == password), None)
-            
-            if user:
-                print(f"\nWelcome, {user.name}!")
-                return user
-            
-            attempts += 1
-            remaining = 3 - attempts
-            print(f"Invalid credentials! {remaining} attempts remaining.")
-        
-        print("Maximum login attempts exceeded. System will now exit.")
+            except FileNotFoundError:
+                print("No users registered. Please register first.")
+                return None
+
+        print("Maximum login attempts exceeded!")
         return None
+
+    # Rest of your RestaurantSystem class methods remain the same...
+
+def main():
+    system = RestaurantSystem()
+    
+    while True:
+        print("\n=== Restaurant Management System ===")
+        print("1. Register")
+        print("2. Login")
+        print("3. Exit")
+        
+        choice = input("Choose: ")
+        
+        if choice == "1":
+            system.register_user()
+            
+        elif choice == "2":
+            user = system.login()
+            if user:
+                if user.role == UserRole.ADMIN:
+                    system.admin_menu(user)
+                elif user.role == UserRole.MANAGER:
+                    system.manager_menu(user)
+                elif user.role == UserRole.CHEF:
+                    system.chef_menu(user)
+                elif user.role == UserRole.CUSTOMER:
+                    system.customer_menu(user)
+                    
+        elif choice == "3":
+            print("Thank you for using the Restaurant Management System!")
+            break
+            
+        else:
+            print("Invalid choice! Please try again.")
+
+if __name__ == "__main__":
+    main()
 
     # Admin Functions
     def admin_menu(self, admin: User):
