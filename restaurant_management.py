@@ -1,4 +1,4 @@
-#MAIN
+#MAIN 
 from datetime import datetime
 from enum import Enum
 from typing import List, Dict
@@ -653,7 +653,7 @@ class RestaurantSystem:
 
     def run(self):
         while True:
-            print("\n=== Restaurant Management System ===")
+            print("\n=== Welcome to Delicious Restaurant ===")
             print("1. Register")
             print("2. Login")
             print("3. Exit")
@@ -691,7 +691,7 @@ class RestaurantSystem:
                         customer.customer_menu(self.menu_items, self.feedbacks)
                         
             elif choice == "3":
-                print("Thank you for using the Restaurant Management System!")
+                print("Thank you for using Delicious Restaurant!")
                 break
                 
             else:
